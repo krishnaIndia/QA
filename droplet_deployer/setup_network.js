@@ -6,7 +6,7 @@ exports = module.exports = function(args) {
   var os = require('os');
   var path = require('path');
   var fse = require('fs-extra');
-  var scpClient = require('scp2');
+  var scpClient = require('scp');
   var async = require('async');
   var exec = require('child_process').exec;
   var utils = require('./common/utils');
@@ -250,11 +250,9 @@ exports = module.exports = function(args) {
 
   var getActiveDropletCount = function(list) {
     var initialisedCount = 0;
-    var initialised;
     for (var i in list) {
       if (list[i]) {
-        initialised = list[i].status === 'active';
-        if (initialised) {
+        if (list[i].status === 'active') {
           initialisedCount += 1;
         }
       }
@@ -498,19 +496,35 @@ exports = module.exports = function(args) {
       callback(null);
       return;
     }
+
     var TransferFiles = function(ip, sourcePath, destPath) {
-      this.run = function(cb) {
-        console.log('Transferring files to :: ' + ip);
-        scpClient.scp(sourcePath, {
-          host: ip,
-          username: config.dropletUser,
-          password: auth.getDopletUserPassword(),
-          path: destPath,
-          readyTimeout: 99999
-        }, cb);
+      var self = this;
+      self.callback = null;
+
+      self.onresult = function(err) {
+        if (!err) {
+          return callback()
+        }
+        console.log('SCP failed for IP :: ' + ip + '. Retrying again');
+        self.send();
       };
 
-      return this.run;
+      self.send = function() {
+        scpClient.send({
+          file: sourcePath
+          host: ip,
+          user: config.dropletUser,
+          path: destPath
+        }, self.onResult);
+      };
+
+      self.run = function(cb) {
+        console.log('Transferring files to :: ' + ip);
+        self.callback = cb;
+        self.send();
+      };
+
+      return self.run;
     };
     var requests = [];
     for (var i in createdDroplets) {
@@ -709,4 +723,3 @@ exports = module.exports = function(args) {
 
   showSetupOptions();
 };
-

@@ -22,7 +22,7 @@
     "fs-extra": "^0.24.0",
     "progress": "^1.1.8",
     "request-json": "^0.5.3",
-    "scp2": "^0.2.2",
+    "scp": "0.0.3",    
     "ssh2": "^0.4.12"
   },
   "devDependencies": {
