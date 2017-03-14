@@ -16,7 +16,7 @@ exports = module.exports = function(args) {
   var SshClient = require('ssh2').Client;
   var ProgressBar = require('progress');
   var Table = require('cli-table');
-  var digitalOcean = require('./common/digitalocean').Api(auth.getDigitalOceanToken(), config.testMode);
+  var digitalOcean =  require('./common/vultr').Api(auth.getDigitalOceanToken());
 
   var ADVANCED_ARG = 'advanced';
 
